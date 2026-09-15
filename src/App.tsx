@@ -23,6 +23,7 @@ import { ShopView } from './views/ShopView';
 import { ProductDetailView } from './views/ProductDetailView';
 import { AboutView } from './views/AboutView';
 import { ContactView } from './views/ContactView';
+import { AdminView } from './views/AdminView';
 
 // Data & Types
 import { PRODUCTS } from './data/products';
@@ -34,6 +35,25 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [shopCategoryFilter, setShopCategoryFilter] = useState<string>('All');
   const [shopTagFilter, setShopTagFilter] = useState<'new' | 'bestseller' | undefined>(undefined);
+
+  // Products State (Supports Admin additions/deletions)
+  const [productsList, setProductsList] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexora_products');
+      return saved ? JSON.parse(saved) : PRODUCTS;
+    } catch {
+      return PRODUCTS;
+    }
+  });
+
+  // Sync products to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('nexora_products', JSON.stringify(productsList));
+    } catch (e) {
+      console.warn('Unable to persist products:', e);
+    }
+  }, [productsList]);
 
   // Cart State with LocalStorage Persistence
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -199,7 +219,26 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const wishlistProducts = PRODUCTS.filter((p) => wishlistIds.includes(p.id));
+  const handleAddProduct = (newProduct: Product) => {
+    setProductsList((prev) => [newProduct, ...prev]);
+    addToast({
+      type: 'info',
+      title: 'Product Published',
+      subtitle: `${newProduct.name} is now live in the store catalog`,
+      image: newProduct.image,
+    });
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    setProductsList((prev) => prev.filter((p) => p.id !== productId));
+    addToast({
+      type: 'info',
+      title: 'Product Removed',
+      subtitle: 'Item deleted from inventory catalog',
+    });
+  };
+
+  const wishlistProducts = productsList.filter((p) => wishlistIds.includes(p.id));
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -257,7 +296,7 @@ export default function App() {
 
             {/* 3. Featured Products Grid */}
             <FeaturedProducts
-              products={PRODUCTS}
+              products={productsList}
               onAddToCart={(p, e) => handleAddToCart(p, 1, undefined, e)}
               onQuickView={(p) => setQuickViewProduct(p)}
               onToggleWishlist={handleToggleWishlist}
@@ -294,7 +333,7 @@ export default function App() {
 
         {currentPage === 'shop' && (
           <ShopView
-            products={PRODUCTS}
+            products={productsList}
             initialCategory={shopCategoryFilter}
             initialFilter={shopTagFilter}
             onAddToCart={(p, e) => handleAddToCart(p, 1, undefined, e)}
@@ -308,7 +347,7 @@ export default function App() {
         {currentPage === 'product-detail' && selectedProduct && (
           <ProductDetailView
             product={selectedProduct}
-            allProducts={PRODUCTS}
+            allProducts={productsList}
             onBackToShop={() => navigateTo('shop')}
             onAddToCart={(prod, qty, col) => handleAddToCart(prod, qty, col)}
             onQuickView={(p) => setQuickViewProduct(p)}
@@ -325,6 +364,15 @@ export default function App() {
         )}
 
         {currentPage === 'contact' && <ContactView />}
+
+        {currentPage === 'admin' && (
+          <AdminView
+            products={productsList}
+            onAddProduct={handleAddProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onNavigateHome={() => navigateTo('home')}
+          />
+        )}
       </main>
 
       {/* Global Footer */}
@@ -359,7 +407,7 @@ export default function App() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        products={PRODUCTS}
+        products={productsList}
         onSelectProduct={handleSelectProduct}
         onFilterCategory={(cat) => {
           setIsSearchOpen(false);
@@ -374,6 +422,7 @@ export default function App() {
         wishlistProducts={wishlistProducts}
         onSelectProduct={handleSelectProduct}
         onAddToCart={(p, e) => handleAddToCart(p, 1, undefined, e)}
+        onNavigateToAdmin={() => navigateTo('admin')}
       />
 
       {/* Real-time Feedback Toasts */}

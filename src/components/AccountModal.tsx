@@ -8,6 +8,7 @@ interface AccountModalProps {
   wishlistProducts: Product[];
   onSelectProduct: (product: Product) => void;
   onAddToCart: (product: Product, e: React.MouseEvent) => void;
+  onNavigateToAdmin?: () => void;
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
@@ -16,6 +17,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   wishlistProducts,
   onSelectProduct,
   onAddToCart,
+  onNavigateToAdmin,
 }) => {
   const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'settings'>('orders');
 
@@ -212,7 +214,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#0B0D0F] border-t border-white/10 flex justify-end">
+        <div className="p-4 bg-[#0B0D0F] border-t border-white/10 flex items-center justify-between">
+          {onNavigateToAdmin ? (
+            <button
+              onClick={() => {
+                onClose();
+                onNavigateToAdmin();
+              }}
+              className="text-xs text-[#32B83F] hover:underline font-semibold flex items-center gap-1"
+            >
+              Staff / Admin Portal &rarr;
+            </button>
+          ) : <div />}
+
           <button
             onClick={onClose}
             className="px-5 py-2 rounded-xl bg-[#1A1F26] text-gray-300 hover:text-white text-xs font-bold border border-white/10 transition-colors"

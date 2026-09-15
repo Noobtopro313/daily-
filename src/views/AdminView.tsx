@@ -1,0 +1,507 @@
+import React, { useState } from 'react';
+import { 
+  Lock, 
+  ShieldCheck, 
+  Package, 
+  Plus, 
+  Trash2, 
+  Edit3, 
+  DollarSign, 
+  TrendingUp, 
+  ShoppingBag, 
+  Users, 
+  LogOut, 
+  Check, 
+  AlertCircle,
+  Eye
+} from 'lucide-react';
+import { Product } from '../types';
+
+interface AdminViewProps {
+  products: Product[];
+  onAddProduct: (newProduct: Product) => void;
+  onDeleteProduct: (productId: string) => void;
+  onNavigateHome: () => void;
+}
+
+export const AdminView: React.FC<AdminViewProps> = ({
+  products,
+  onAddProduct,
+  onDeleteProduct,
+  onNavigateHome,
+}) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('nexora_admin_auth') === 'true';
+  });
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'analytics'>('products');
+
+  // New Product Form State
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [newProdName, setNewProdName] = useState('');
+  const [newProdCategory, setNewProdCategory] = useState<Product['category']>('Audio');
+  const [newProdPrice, setNewProdPrice] = useState('');
+  const [newProdOriginalPrice, setNewProdOriginalPrice] = useState('');
+  const [newProdImage, setNewProdImage] = useState('');
+  const [newProdTagline, setNewProdTagline] = useState('');
+  const [newProdDesc, setNewProdDesc] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username.trim() === 'admin' && password === 'admin123') {
+      setIsAuthenticated(true);
+      localStorage.setItem('nexora_admin_auth', 'true');
+      setErrorMsg('');
+    } else {
+      setErrorMsg('Invalid credentials. Default: admin / admin123');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('nexora_admin_auth');
+  };
+
+  const handleCreateProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProdName || !newProdPrice || !newProdImage) {
+      alert('Please fill Name, Price, and Image URL');
+      return;
+    }
+
+    const price = parseFloat(newProdPrice);
+    const originalPrice = newProdOriginalPrice ? parseFloat(newProdOriginalPrice) : undefined;
+
+    const newProduct: Product = {
+      id: `prod-custom-${Date.now()}`,
+      name: newProdName,
+      tagline: newProdTagline || 'High-performance engineered tech',
+      category: newProdCategory,
+      price: price,
+      originalPrice: originalPrice,
+      rating: 5.0,
+      reviewCount: 1,
+      image: newProdImage,
+      gallery: [newProdImage],
+      inStock: true,
+      stockCount: 25,
+      shortDescription: newProdDesc || 'Brand new release in the Nexora premium collection.',
+      fullDescription: newProdDesc || 'Engineered with premium acoustic precision and ergonomic industrial design.',
+      features: ['1-Year Manufacturer Warranty', 'Fast Type-C Charging', 'Smart Sync'],
+      specs: [
+        { name: 'Condition', value: 'Brand New In Box' },
+        { name: 'Warranty', value: '12 Months' }
+      ],
+      colors: [{ name: 'Default', hex: '#111111' }]
+    };
+
+    onAddProduct(newProduct);
+    setIsAddingProduct(false);
+    setNewProdName('');
+    setNewProdPrice('');
+    setNewProdOriginalPrice('');
+    setNewProdImage('');
+    setNewProdTagline('');
+    setNewProdDesc('');
+  };
+
+  // Login Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md bg-[#121518] border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 bg-[#32B83F]/20 border border-[#32B83F]/40 rounded-2xl flex items-center justify-center text-[#32B83F] mx-auto mb-4">
+              <Lock className="w-7 h-7" />
+            </div>
+            <h1 className="text-2xl font-bold text-white font-heading tracking-tight">Admin Portal</h1>
+            <p className="text-sm text-gray-400 mt-1">
+              Sign in to manage store inventory, orders, and products
+            </p>
+          </div>
+
+          {errorMsg && (
+            <div className="mb-6 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
+                className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#32B83F] transition-colors"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="admin123"
+                className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#32B83F] transition-colors"
+                required
+              />
+            </div>
+
+            <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-400">
+              <span className="font-semibold text-gray-300">Demo Login Details:</span><br />
+              Username: <code className="text-[#32B83F]">admin</code><br />
+              Password: <code className="text-[#32B83F]">admin123</code>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#32B83F] hover:bg-[#27A936] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#32B83F]/20 text-sm flex items-center justify-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Access Dashboard
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={onNavigateHome}
+              className="text-xs text-gray-400 hover:text-white transition-colors"
+            >
+              &larr; Return to Storefront
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin Dashboard
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Top Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#32B83F]/20 border border-[#32B83F]/30 text-[#32B83F] text-xs font-bold uppercase tracking-wider">
+              Staff Portal
+            </span>
+            <span className="text-xs text-gray-400">Authorized: Super Administrator</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading tracking-tight mt-1">
+            Nexora Admin Dashboard
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onNavigateHome}
+            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+          >
+            <Eye className="w-4 h-4" />
+            View Storefront
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+        <div className="bg-[#121518] border border-white/10 p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-gray-400 text-xs font-semibold">
+            <span>Total Catalog Products</span>
+            <Package className="w-4 h-4 text-[#32B83F]" />
+          </div>
+          <div className="text-2xl font-bold text-white mt-2 font-heading">{products.length}</div>
+          <div className="text-[11px] text-gray-400 mt-1">Active items live in store</div>
+        </div>
+
+        <div className="bg-[#121518] border border-white/10 p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-gray-400 text-xs font-semibold">
+            <span>Estimated Revenue</span>
+            <DollarSign className="w-4 h-4 text-[#32B83F]" />
+          </div>
+          <div className="text-2xl font-bold text-white mt-2 font-heading">$28,490.00</div>
+          <div className="text-[11px] text-[#32B83F] mt-1">+18.4% this month</div>
+        </div>
+
+        <div className="bg-[#121518] border border-white/10 p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-gray-400 text-xs font-semibold">
+            <span>Completed Orders</span>
+            <ShoppingBag className="w-4 h-4 text-[#32B83F]" />
+          </div>
+          <div className="text-2xl font-bold text-white mt-2 font-heading">184</div>
+          <div className="text-[11px] text-gray-400 mt-1">4 pending delivery</div>
+        </div>
+
+        <div className="bg-[#121518] border border-white/10 p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-gray-400 text-xs font-semibold">
+            <span>Customer Accounts</span>
+            <Users className="w-4 h-4 text-[#32B83F]" />
+          </div>
+          <div className="text-2xl font-bold text-white mt-2 font-heading">1,240</div>
+          <div className="text-[11px] text-[#32B83F] mt-1">99.8% satisfaction score</div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-white/10 mb-6 gap-2">
+        <button
+          onClick={() => setActiveTab('products')}
+          className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'products'
+              ? 'border-[#32B83F] text-white'
+              : 'border-transparent text-gray-400 hover:text-white'
+          }`}
+        >
+          <Package className="w-4 h-4" />
+          Manage Products ({products.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('orders')}
+          className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'orders'
+              ? 'border-[#32B83F] text-white'
+              : 'border-transparent text-gray-400 hover:text-white'
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          Recent Orders
+        </button>
+      </div>
+
+      {/* Tab 1: Products */}
+      {activeTab === 'products' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">Store Inventory</h2>
+            <button
+              onClick={() => setIsAddingProduct(!isAddingProduct)}
+              className="px-4 py-2 bg-[#32B83F] hover:bg-[#27A936] text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              {isAddingProduct ? 'Cancel' : 'Add New Product'}
+            </button>
+          </div>
+
+          {/* Add Product Form */}
+          {isAddingProduct && (
+            <div className="bg-[#121518] border border-[#32B83F]/30 p-6 rounded-2xl shadow-xl animate-in fade-in">
+              <h3 className="text-base font-bold text-white mb-4">Create New Product</h3>
+              <form onSubmit={handleCreateProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Product Title *</label>
+                  <input
+                    type="text"
+                    value={newProdName}
+                    onChange={(e) => setNewProdName(e.target.value)}
+                    placeholder="e.g. Apex Ultra Headphones"
+                    className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#32B83F]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Category *</label>
+                  <select
+                    value={newProdCategory}
+                    onChange={(e) => setNewProdCategory(e.target.value as any)}
+                    className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#32B83F]"
+                  >
+                    <option value="Audio">Audio</option>
+                    <option value="Smart Wearables">Smart Wearables</option>
+                    <option value="Gaming">Gaming</option>
+                    <option value="Mobile Accessories">Mobile Accessories</option>
+                    <option value="Smart Home">Smart Home</option>
+                    <option value="Work & Productivity">Work & Productivity</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Price ($) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newProdPrice}
+                    onChange={(e) => setNewProdPrice(e.target.value)}
+                    placeholder="129.99"
+                    className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#32B83F]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Original Price ($) (Optional)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newProdOriginalPrice}
+                    onChange={(e) => setNewProdOriginalPrice(e.target.value)}
+                    placeholder="179.99"
+                    className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#32B83F]"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Product Image URL *</label>
+                  <input
+                    type="url"
+                    value={newProdImage}
+                    onChange={(e) => setNewProdImage(e.target.value)}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#32B83F]"
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Tagline / Short description</label>
+                  <input
+                    type="text"
+                    value={newProdTagline}
+                    onChange={(e) => setNewProdTagline(e.target.value)}
+                    placeholder="Studio quality sound with noise cancellation"
+                    className="w-full bg-[#1A1F26] border border-white/10 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#32B83F]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingProduct(false)}
+                    className="px-4 py-2 bg-white/5 text-gray-300 rounded-xl text-xs font-bold hover:bg-white/10"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#32B83F] hover:bg-[#27A936] text-white rounded-xl text-xs font-bold shadow-md"
+                  >
+                    Publish Product
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Product List Table */}
+          <div className="bg-[#121518] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-gray-300">
+                <thead className="bg-[#171B20] text-gray-400 font-semibold border-b border-white/10 uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3 px-4">Product</th>
+                    <th className="py-3 px-4">Category</th>
+                    <th className="py-3 px-4">Price</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {products.map((p) => (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-white p-1 flex items-center justify-center flex-shrink-0">
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-contain mix-blend-multiply"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white">{p.name}</div>
+                          <div className="text-[11px] text-gray-400 truncate max-w-xs">{p.tagline}</div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[11px]">
+                          {p.category}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 font-bold text-white font-mono">
+                        ${p.price.toFixed(2)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#32B83F]">
+                          <Check className="w-3 h-3" /> In Stock
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <button
+                          onClick={() => onDeleteProduct(p.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Orders */}
+      {activeTab === 'orders' && (
+        <div className="bg-[#121518] border border-white/10 rounded-2xl p-6">
+          <h2 className="text-base font-bold text-white mb-4">Latest Store Orders</h2>
+          <div className="space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-[#171B20] border border-white/5 flex items-center justify-between">
+              <div>
+                <div className="font-bold text-white">#ORD-94812 — Alex Thorne</div>
+                <div className="text-gray-400 mt-0.5">Wireless Earbuds Pro (Matte Obsidian)</div>
+              </div>
+              <div className="text-right">
+                <span className="px-2 py-0.5 rounded bg-[#32B83F]/20 text-[#32B83F] font-bold">Shipped</span>
+                <div className="font-bold text-white font-mono mt-1">$149.99</div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#171B20] border border-white/5 flex items-center justify-between">
+              <div>
+                <div className="font-bold text-white">#ORD-94811 — Sara Williams</div>
+                <div className="text-gray-400 mt-0.5">Fast Charging Hub 140W GaN III</div>
+              </div>
+              <div className="text-right">
+                <span className="px-2 py-0.5 rounded bg-[#32B83F]/20 text-[#32B83F] font-bold">Processing</span>
+                <div className="font-bold text-white font-mono mt-1">$69.99</div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#171B20] border border-white/5 flex items-center justify-between">
+              <div>
+                <div className="font-bold text-white">#ORD-94810 — David Chen</div>
+                <div className="text-gray-400 mt-0.5">Apex Ultra Mechanical Keyboard</div>
+              </div>
+              <div className="text-right">
+                <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">Delivered</span>
+                <div className="font-bold text-white font-mono mt-1">$189.99</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

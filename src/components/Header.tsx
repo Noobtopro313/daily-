@@ -135,6 +135,18 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#32B83F] rounded-full" />
               )}
             </button>
+
+            <button
+              id="nav-link-admin"
+              onClick={() => onNavigate('admin')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-md border transition-all ${
+                activePage === 'admin'
+                  ? 'bg-[#32B83F] text-white border-[#32B83F]'
+                  : 'bg-white/5 text-gray-300 border-white/10 hover:border-[#32B83F]/50 hover:text-white'
+              }`}
+            >
+              Admin Panel
+            </button>
           </nav>
 
           {/* RIGHT: Action Icons */}
@@ -195,6 +207,20 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden xl:inline text-xs font-semibold text-gray-300 group-hover:text-white">
                 Cart
               </span>
+            </button>
+
+            {/* Direct Admin Access Button */}
+            <button
+              id="header-admin-direct-btn"
+              onClick={() => onNavigate('admin')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
+                activePage === 'admin'
+                  ? 'bg-[#32B83F] text-white ring-2 ring-[#32B83F]'
+                  : 'bg-[#32B83F]/20 text-[#32B83F] hover:bg-[#32B83F] hover:text-white border border-[#32B83F]/50'
+              }`}
+              title="Open Admin Login"
+            >
+              <span>Admin</span>
             </button>
 
             {/* Mobile Menu Hamburger */}

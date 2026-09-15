@@ -164,6 +164,19 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             Contact Support
             <ArrowRight className="w-4 h-4 text-gray-500" />
           </button>
+
+          <button
+            id="mobile-nav-admin"
+            onClick={() => { onNavigate('admin'); onClose(); }}
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-base font-medium transition-colors ${
+              activePage === 'admin'
+                ? 'text-[#32B83F] bg-[#32B83F]/10 font-semibold'
+                : 'text-gray-200 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            Admin Panel (Staff)
+            <ArrowRight className="w-4 h-4 text-gray-500" />
+          </button>
         </div>
 
         {/* Footer info in drawer */}

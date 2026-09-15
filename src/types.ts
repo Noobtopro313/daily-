@@ -63,7 +63,7 @@ export interface BenefitItem {
   subtitle: string;
 }
 
-export type ActivePage = 'home' | 'shop' | 'about' | 'contact' | 'product-detail';
+export type ActivePage = 'home' | 'shop' | 'about' | 'contact' | 'product-detail' | 'admin';
 
 export interface FilterState {
   search: string;
