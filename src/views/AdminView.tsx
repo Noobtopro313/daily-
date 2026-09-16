@@ -13,15 +13,24 @@ import {
   LogOut, 
   Check, 
   AlertCircle,
-  Eye
+  Eye,
+  Settings as SettingsIcon,
+  MessageCircle,
+  Mail,
+  Phone,
+  MapPin,
+  Save,
+  Target
 } from 'lucide-react';
-import { Product } from '../types';
+import { Product, StoreSettings } from '../types';
 
 interface AdminViewProps {
   products: Product[];
   onAddProduct: (newProduct: Product) => void;
   onDeleteProduct: (productId: string) => void;
   onNavigateHome: () => void;
+  settings: StoreSettings;
+  onUpdateSettings: (newSettings: StoreSettings) => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -29,6 +38,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onAddProduct,
   onDeleteProduct,
   onNavigateHome,
+  settings,
+  onUpdateSettings,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('nexora_admin_auth') === 'true';
@@ -37,7 +48,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'analytics'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings'>('products');
+
+  // Store Settings Form State
+  const [storeForm, setStoreForm] = useState<StoreSettings>(settings);
+  const [savedSettingsSuccess, setSavedSettingsSuccess] = useState(false);
 
   // New Product Form State
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -285,6 +300,17 @@ export const AdminView: React.FC<AdminViewProps> = ({
           <ShoppingBag className="w-4 h-4" />
           Recent Orders
         </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'settings'
+              ? 'border-[#32B83F] text-white'
+              : 'border-transparent text-gray-400 hover:text-white'
+          }`}
+        >
+          <SettingsIcon className="w-4 h-4" />
+          Store Settings &amp; WhatsApp
+        </button>
       </div>
 
       {/* Tab 1: Products */}
@@ -500,6 +526,193 @@ export const AdminView: React.FC<AdminViewProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Tab 3: Store Settings & WhatsApp */}
+      {activeTab === 'settings' && (
+        <div className="bg-[#121518] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+            <div>
+              <h2 className="text-lg font-bold text-white font-heading">Store Profile &amp; Contact Settings</h2>
+              <p className="text-xs text-gray-400 mt-1">
+                Configure your WhatsApp number, support email, store address, and customer announcement.
+              </p>
+            </div>
+            {savedSettingsSuccess && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#32B83F]/20 text-[#32B83F] text-xs font-bold animate-fade-in">
+                <Check className="w-4 h-4" />
+                Settings Saved Successfully!
+              </div>
+            )}
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onUpdateSettings(storeForm);
+              setSavedSettingsSuccess(true);
+              setTimeout(() => setSavedSettingsSuccess(false), 3500);
+            }}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* WhatsApp Number */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-white/5">
+                <label className="text-xs font-bold text-white flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                  WhatsApp Number (With Country Code)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. +923001234567 or +14155552671"
+                  value={storeForm.whatsappNumber}
+                  onChange={(e) => setStoreForm({ ...storeForm, whatsappNumber: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-[#25D366]"
+                />
+                <p className="text-[11px] text-gray-400">
+                  Customers can tap the floating WhatsApp button to chat with you directly.
+                </p>
+              </div>
+
+              {/* Support Email */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-white/5">
+                <label className="text-xs font-bold text-white flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#32B83F]" />
+                  Official Support Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. support@yourdomain.com"
+                  value={storeForm.supportEmail}
+                  onChange={(e) => setStoreForm({ ...storeForm, supportEmail: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-[#32B83F]"
+                />
+                <p className="text-[11px] text-gray-400">
+                  Displayed in the Contact Us page, footer concierge, and receipts.
+                </p>
+              </div>
+
+              {/* Store Name */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-white/5">
+                <label className="text-xs font-bold text-white flex items-center gap-2">
+                  <Package className="w-4 h-4 text-[#32B83F]" />
+                  Store / Brand Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. NEXORA TECH"
+                  value={storeForm.storeName}
+                  onChange={(e) => setStoreForm({ ...storeForm, storeName: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-[#32B83F]"
+                />
+              </div>
+
+              {/* Phone Number */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-white/5">
+                <label className="text-xs font-bold text-white flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-[#32B83F]" />
+                  Phone Line / Hotline
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. +1 (800) 555-0199"
+                  value={storeForm.phoneNumber}
+                  onChange={(e) => setStoreForm({ ...storeForm, phoneNumber: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-[#32B83F]"
+                />
+              </div>
+
+              {/* Store Physical Address */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-white/5 md:col-span-2">
+                <label className="text-xs font-bold text-white flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#32B83F]" />
+                  Store Location / Warehouse Address
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Street, City, Country"
+                  value={storeForm.address}
+                  onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-[#32B83F]"
+                />
+              </div>
+
+              {/* Announcement Bar */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-white/5 md:col-span-2">
+                <label className="text-xs font-bold text-white flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#32B83F]" />
+                  Header Announcement Banner Text
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Free Express Shipping worldwide on orders over $50 | 30-Day Money Back Guarantee"
+                  value={storeForm.announcementText}
+                  onChange={(e) => setStoreForm({ ...storeForm, announcementText: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-[#32B83F]"
+                />
+              </div>
+
+              {/* Facebook Pixel ID */}
+              <div className="space-y-2 bg-[#171B20] p-4 rounded-xl border border-blue-500/20 md:col-span-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-2">
+                    <Target className="w-4 h-4 text-blue-400" />
+                    Facebook / Meta Pixel ID (For Meta & Instagram Ads)
+                  </label>
+                  <span className="text-[10px] font-semibold bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">
+                    E-Commerce Tracking
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. 182930492819283 (Numeric Pixel ID from Meta Events Manager)"
+                  value={storeForm.facebookPixelId || ''}
+                  onChange={(e) => setStoreForm({ ...storeForm, facebookPixelId: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0D0F] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-blue-400 font-mono"
+                />
+                <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block"></span>
+                  Meta Events Manager se apna 15-16 digit Pixel ID yahan paste karein. Website automatically <strong>PageView</strong>, <strong>ViewContent</strong>, <strong>AddToCart</strong> aur <strong>Purchase</strong> events fire karegi.
+                </p>
+              </div>
+
+              {/* Toggle WhatsApp Floating Button */}
+              <div className="bg-[#171B20] p-4 rounded-xl border border-white/5 md:col-span-2 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                    Enable Floating WhatsApp Chat Button
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    When enabled, a green WhatsApp button appears at the bottom-right corner of the whole site.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={storeForm.enableWhatsappChat}
+                    onChange={(e) => setStoreForm({ ...storeForm, enableWhatsappChat: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366]"></div>
+                </label>
+              </div>
+
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end pt-4 border-t border-white/10">
+              <button
+                type="submit"
+                className="px-6 py-3 bg-[#32B83F] hover:bg-[#27A936] text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[#32B83F]/20 flex items-center gap-2 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                Save Store Settings
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

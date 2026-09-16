@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Search, ShoppingBag, Heart, ArrowRight, ShieldCheck, Truck, Headphones } from 'lucide-react';
+import { X, Search, ShoppingBag, Heart, ArrowRight, ShieldCheck, Truck, Headphones, Sparkles } from 'lucide-react';
 import { ActivePage } from '../types';
 import { Logo } from './Logo';
 
@@ -10,6 +10,7 @@ interface MobileMenuProps {
   onNavigate: (page: ActivePage, extra?: { category?: string; filter?: 'new' | 'bestseller' }) => void;
   onOpenSearch: () => void;
   onOpenCart: () => void;
+  onOpenAiAssistant?: () => void;
   cartCount: number;
   wishlistCount: number;
 }
@@ -21,6 +22,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   onNavigate,
   onOpenSearch,
   onOpenCart,
+  onOpenAiAssistant,
   cartCount,
   wishlistCount,
 }) => {
@@ -50,7 +52,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         </div>
 
         {/* Quick Search Bar */}
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4 border-b border-white/5 space-y-2">
           <button
             onClick={() => { onClose(); onOpenSearch(); }}
             className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-[#1A1E23] text-gray-400 hover:text-white border border-white/5 text-sm transition-all"
@@ -63,6 +65,19 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               /
             </kbd>
           </button>
+
+          {onOpenAiAssistant && (
+            <button
+              onClick={() => { onClose(); onOpenAiAssistant(); }}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-gradient-to-r from-[#32B83F]/20 to-blue-500/20 border border-[#32B83F]/40 text-[#32B83F] hover:text-white hover:bg-[#32B83F] text-sm font-bold transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#32B83F] animate-pulse" />
+                Ask Nexora AI Shopping Guide
+              </span>
+              <span className="text-[10px] bg-[#32B83F]/20 px-1.5 py-0.5 rounded font-mono">Gemini</span>
+            </button>
+          )}
         </div>
 
         {/* Navigation Links */}

@@ -28,6 +28,7 @@ interface ProductDetailViewProps {
   wishlistIds: string[];
   onSelectProduct: (product: Product) => void;
   onOpenCart: () => void;
+  onAskAi?: (product: Product) => void;
 }
 
 export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
@@ -41,6 +42,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   wishlistIds,
   onSelectProduct,
   onOpenCart,
+  onAskAi,
 }) => {
   const [selectedImage, setSelectedImage] = useState<string>(product.image);
   const [selectedColor, setSelectedColor] = useState<string>(
@@ -337,6 +339,18 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   <Zap className="w-4 h-4 text-[#32B83F]" />
                   <span>Instant Checkout</span>
                 </button>
+
+                {/* Ask AI Advisor Button */}
+                {onAskAi && (
+                  <button
+                    type="button"
+                    onClick={() => onAskAi(product)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#32B83F]/15 to-blue-500/15 hover:from-[#32B83F]/25 hover:to-blue-500/25 text-[#32B83F] border border-[#32B83F]/30 hover:border-[#32B83F]/60 text-xs font-bold tracking-wide transition-all cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#32B83F] animate-pulse" />
+                    <span>Ask AI Assistant About This Product</span>
+                  </button>
+                )}
               </div>
 
               {/* Guarantees Box */}

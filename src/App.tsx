@@ -17,6 +17,9 @@ import { QuickViewModal } from './components/QuickViewModal';
 import { SearchModal } from './components/SearchModal';
 import { AccountModal } from './components/AccountModal';
 import { Toast, ToastMessage } from './components/Toast';
+import { FloatingWhatsApp } from './components/FloatingWhatsApp';
+import { FloatingAiTrigger } from './components/FloatingAiTrigger';
+import { AiAssistantModal } from './components/AiAssistantModal';
 
 // Views
 import { ShopView } from './views/ShopView';
@@ -27,7 +30,20 @@ import { AdminView } from './views/AdminView';
 
 // Data & Types
 import { PRODUCTS } from './data/products';
-import { Product, CartItem, ActivePage } from './types';
+import { Product, CartItem, ActivePage, StoreSettings } from './types';
+import { initFacebookPixel, trackPixelEvent } from './utils/pixel';
+
+const DEFAULT_SETTINGS: StoreSettings = {
+  storeName: 'NEXORA TECH',
+  supportEmail: 'support@nexoratech.com',
+  whatsappNumber: '+923001234567',
+  phoneNumber: '+1 (800) 555-0199',
+  address: '742 Evergreen Horizon Blvd, Suite 400\nSan Francisco, CA 94105, United States',
+  currency: 'USD ($)',
+  announcementText: 'Free Express Shipping worldwide on orders over $50 | 30-Day Money Back Guarantee',
+  enableWhatsappChat: true,
+  facebookPixelId: '',
+};
 
 export default function App() {
   // Navigation State
@@ -35,6 +51,45 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [shopCategoryFilter, setShopCategoryFilter] = useState<string>('All');
   const [shopTagFilter, setShopTagFilter] = useState<'new' | 'bestseller' | undefined>(undefined);
+
+  // Store Settings with LocalStorage persistence
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    try {
+      const saved = localStorage.getItem('nexora_store_settings');
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
+  // Initialize Meta Pixel when pixel ID is set or changed
+  useEffect(() => {
+    if (storeSettings.facebookPixelId) {
+      initFacebookPixel(storeSettings.facebookPixelId);
+    }
+  }, [storeSettings.facebookPixelId]);
+
+  // Track PageView on page navigation
+  useEffect(() => {
+    trackPixelEvent('PageView', {
+      page: currentPage,
+      url: window.location.href,
+    });
+  }, [currentPage]);
+
+  const handleUpdateSettings = (newSettings: StoreSettings) => {
+    setStoreSettings(newSettings);
+    try {
+      localStorage.setItem('nexora_store_settings', JSON.stringify(newSettings));
+    } catch (e) {
+      console.warn('Unable to persist settings:', e);
+    }
+    addToast({
+      type: 'info',
+      title: 'Store Settings Updated',
+      subtitle: 'WhatsApp number and store configurations are now live',
+    });
+  };
 
   // Products State (Supports Admin additions/deletions)
   const [productsList, setProductsList] = useState<Product[]>(() => {
@@ -81,6 +136,7 @@ export default function App() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Sync cart to localStorage
@@ -144,6 +200,16 @@ export default function App() {
       title: `Added to Cart (${quantity}x)`,
       subtitle: `${product.name} • ${chosenColor}`,
       image: product.image,
+    });
+
+    // Facebook Pixel AddToCart Event
+    trackPixelEvent('AddToCart', {
+      content_name: product.name,
+      content_category: product.category,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price * quantity,
+      currency: 'USD',
     });
   };
 
@@ -217,6 +283,16 @@ export default function App() {
     setSelectedProduct(product);
     setCurrentPage('product-detail');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Facebook Pixel ViewContent Event
+    trackPixelEvent('ViewContent', {
+      content_name: product.name,
+      content_category: product.category,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'USD',
+    });
   };
 
   const handleAddProduct = (newProduct: Product) => {
@@ -252,8 +328,10 @@ export default function App() {
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenAccount={() => setIsAccountOpen(true)}
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+        onOpenAiAssistant={() => setIsAiOpen(true)}
         cartCount={totalCartCount}
         wishlistCount={wishlistIds.length}
+        announcementText={storeSettings.announcementText}
       />
 
       {/* Mobile Drawer Menu */}
@@ -276,6 +354,10 @@ export default function App() {
         onOpenAccount={() => {
           setIsMobileMenuOpen(false);
           setIsAccountOpen(true);
+        }}
+        onOpenAiAssistant={() => {
+          setIsMobileMenuOpen(false);
+          setIsAiOpen(true);
         }}
         cartCount={totalCartCount}
         wishlistCount={wishlistIds.length}
@@ -356,6 +438,7 @@ export default function App() {
             wishlistIds={wishlistIds}
             onSelectProduct={handleSelectProduct}
             onOpenCart={() => setIsCartOpen(true)}
+            onAskAi={() => setIsAiOpen(true)}
           />
         )}
 
@@ -363,7 +446,7 @@ export default function App() {
           <AboutView onExploreCatalog={() => navigateTo('shop')} />
         )}
 
-        {currentPage === 'contact' && <ContactView />}
+        {currentPage === 'contact' && <ContactView settings={storeSettings} />}
 
         {currentPage === 'admin' && (
           <AdminView
@@ -371,12 +454,22 @@ export default function App() {
             onAddProduct={handleAddProduct}
             onDeleteProduct={handleDeleteProduct}
             onNavigateHome={() => navigateTo('home')}
+            settings={storeSettings}
+            onUpdateSettings={handleUpdateSettings}
           />
         )}
       </main>
 
       {/* Global Footer */}
-      <Footer onNavigate={navigateTo} />
+      <Footer onNavigate={navigateTo} settings={storeSettings} />
+
+      {/* Floating WhatsApp Live Chat Button */}
+      {storeSettings.enableWhatsappChat && (
+        <FloatingWhatsApp
+          whatsappNumber={storeSettings.whatsappNumber}
+          storeName={storeSettings.storeName}
+        />
+      )}
 
       {/* Slide-over Cart Drawer */}
       <CartDrawer
@@ -389,6 +482,20 @@ export default function App() {
         onNavigateToShop={() => {
           setIsCartOpen(false);
           navigateTo('shop');
+        }}
+        onCheckoutSuccess={(orderTotal, items) => {
+          trackPixelEvent('Purchase', {
+            content_type: 'product',
+            content_ids: items.map((i) => i.product.id),
+            contents: items.map((i) => ({
+              id: i.product.id,
+              quantity: i.quantity,
+              item_price: i.product.price,
+            })),
+            value: orderTotal,
+            currency: 'USD',
+            num_items: items.reduce((acc, i) => acc + i.quantity, 0),
+          });
         }}
       />
 
@@ -423,6 +530,21 @@ export default function App() {
         onSelectProduct={handleSelectProduct}
         onAddToCart={(p, e) => handleAddToCart(p, 1, undefined, e)}
         onNavigateToAdmin={() => navigateTo('admin')}
+      />
+
+      {/* Floating AI Shopping Assistant Trigger */}
+      <FloatingAiTrigger
+        onClick={() => setIsAiOpen(true)}
+        hasWhatsApp={storeSettings.enableWhatsappChat && Boolean(storeSettings.whatsappNumber)}
+      />
+
+      {/* AI Assistant Modal (Gemini Shopping Advisor) */}
+      <AiAssistantModal
+        isOpen={isAiOpen}
+        onClose={() => setIsAiOpen(false)}
+        products={productsList}
+        currentProduct={currentPage === 'product-detail' ? selectedProduct : null}
+        onSelectProduct={handleSelectProduct}
       />
 
       {/* Real-time Feedback Toasts */}

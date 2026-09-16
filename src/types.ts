@@ -65,6 +65,18 @@ export interface BenefitItem {
 
 export type ActivePage = 'home' | 'shop' | 'about' | 'contact' | 'product-detail' | 'admin';
 
+export interface StoreSettings {
+  storeName: string;
+  supportEmail: string;
+  whatsappNumber: string;
+  phoneNumber: string;
+  address: string;
+  currency: string;
+  announcementText: string;
+  enableWhatsappChat: boolean;
+  facebookPixelId?: string;
+}
+
 export interface FilterState {
   search: string;
   category: string;

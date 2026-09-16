@@ -1,14 +1,15 @@
 import React from 'react';
 import { Mail, Instagram, Facebook, Youtube } from 'lucide-react';
-import { ActivePage } from '../types';
+import { ActivePage, StoreSettings } from '../types';
 import { Logo } from './Logo';
 
 interface FooterProps {
   onNavigate: (page: ActivePage, extra?: { category?: string; filter?: 'new' | 'bestseller' }) => void;
   onOpenPrivacyModal?: () => void;
+  settings?: StoreSettings;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate, settings }) => {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -209,7 +210,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
             <div className="mt-6 pt-4 border-t border-white/5">
               <span className="text-xs font-semibold text-gray-300 block">Direct Concierge</span>
-              <span className="text-xs text-[#32B83F] mt-0.5 block font-mono">support@nexoratech.com</span>
+              <a
+                href={`mailto:${settings?.supportEmail || 'support@nexoratech.com'}`}
+                className="text-xs text-[#32B83F] hover:underline mt-0.5 block font-mono"
+              >
+                {settings?.supportEmail || 'support@nexoratech.com'}
+              </a>
+              {settings?.whatsappNumber && (
+                <div className="text-[11px] text-gray-400 mt-1">
+                  WhatsApp: <span className="text-white font-mono">{settings.whatsappNumber}</span>
+                </div>
+              )}
             </div>
           </div>
 

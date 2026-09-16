@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Heart, User, Menu } from 'lucide-react';
+import { Search, ShoppingBag, Heart, User, Menu, Sparkles } from 'lucide-react';
 import { ActivePage } from '../types';
 import { Logo } from './Logo';
 
@@ -10,8 +10,10 @@ interface HeaderProps {
   onOpenCart: () => void;
   onOpenMobileMenu: () => void;
   onOpenAccount: () => void;
+  onOpenAiAssistant?: () => void;
   cartCount: number;
   wishlistCount: number;
+  announcementText?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,8 +23,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCart,
   onOpenMobileMenu,
   onOpenAccount,
+  onOpenAiAssistant,
   cartCount,
   wishlistCount,
+  announcementText,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -43,6 +47,11 @@ export const Header: React.FC<HeaderProps> = ({
           : 'bg-[#0B0D0F] border-b border-white/5'
       }`}
     >
+      {announcementText && (
+        <div className="bg-gradient-to-r from-[#171B20] via-[#1F252E] to-[#171B20] border-b border-white/10 text-center py-1.5 px-4 text-[11px] text-gray-300 font-medium">
+          <span>{announcementText}</span>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-[70px]">
           {/* LEFT: Brand Logo */}
@@ -151,6 +160,20 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* RIGHT: Action Icons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* AI Assistant Trigger */}
+            {onOpenAiAssistant && (
+              <button
+                id="header-ai-advisor-btn"
+                onClick={onOpenAiAssistant}
+                aria-label="Ask AI Assistant"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#32B83F]/20 to-blue-500/20 border border-[#32B83F]/40 text-[#32B83F] hover:text-white hover:bg-[#32B83F] transition-all text-xs font-bold group shadow-sm"
+                title="AI Shopping Advisor (Gemini)"
+              >
+                <Sparkles className="w-4 h-4 text-[#32B83F] group-hover:text-white animate-pulse" />
+                <span className="hidden sm:inline">AI Guide</span>
+              </button>
+            )}
+
             {/* Search Trigger */}
             <button
               id="header-search-btn"

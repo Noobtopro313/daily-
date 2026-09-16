@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { Mail, Clock, MessageSquare, ChevronDown, CheckCircle2, Send, HelpCircle, ShieldAlert } from 'lucide-react';
+import { Mail, Clock, MessageSquare, ChevronDown, CheckCircle2, Send, HelpCircle, ShieldAlert, MessageCircle, Phone } from 'lucide-react';
+import { StoreSettings } from '../types';
 
-export const ContactView: React.FC = () => {
+interface ContactViewProps {
+  settings?: StoreSettings;
+}
+
+export const ContactView: React.FC<ContactViewProps> = ({ settings }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -173,13 +178,51 @@ export const ContactView: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-white">Direct Email Concierge</h3>
                   <a
-                    href="mailto:support@nexoratech.com"
+                    href={`mailto:${settings?.supportEmail || 'support@nexoratech.com'}`}
                     className="text-xs text-[#32B83F] hover:underline font-mono"
                   >
-                    support@nexoratech.com
+                    {settings?.supportEmail || 'support@nexoratech.com'}
                   </a>
                 </div>
               </div>
+
+              {/* WhatsApp Support Row */}
+              {settings?.whatsappNumber && (
+                <div className="flex items-center gap-3 pt-3 border-t border-white/5">
+                  <div className="w-10 h-10 rounded-xl bg-[#25D366]/20 text-[#25D366] flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">WhatsApp Support</h3>
+                    <a
+                      href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[#25D366] hover:underline font-mono font-bold"
+                    >
+                      {settings.whatsappNumber} → Chat Now
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Phone Row */}
+              {settings?.phoneNumber && (
+                <div className="flex items-center gap-3 pt-3 border-t border-white/5">
+                  <div className="w-10 h-10 rounded-xl bg-[#1A1F26] text-[#32B83F] flex items-center justify-center">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Direct Phone Line</h3>
+                    <a
+                      href={`tel:${settings.phoneNumber}`}
+                      className="text-xs text-gray-300 hover:text-white font-mono"
+                    >
+                      {settings.phoneNumber}
+                    </a>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-3 pt-3 border-t border-white/5">
                 <div className="w-10 h-10 rounded-xl bg-[#1A1F26] text-[#32B83F] flex items-center justify-center">
@@ -196,19 +239,17 @@ export const ContactView: React.FC = () => {
 
               <div className="p-3 rounded-xl bg-[#171B20] text-xs text-gray-300 border border-white/5 flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-[#32B83F] animate-pulse" />
-                <span>Current queue response time: <strong className="text-white">&lt; 35 minutes</strong></span>
+                <span>Current queue response time: <strong className="text-white">&lt; 15 minutes</strong></span>
               </div>
             </div>
 
             {/* Corporate Location Card */}
             <div className="p-6 rounded-2xl bg-[#121518] border border-white/10 space-y-2 text-xs">
               <h3 className="text-sm font-bold text-white font-heading">
-                Distribution &amp; Engineering Labs
+                {settings?.storeName || 'NEXORA TECH'} Headquarters
               </h3>
-              <p className="text-gray-400 leading-relaxed">
-                NEXORA TECH Logistics Center <br />
-                742 Evergreen Horizon Blvd, Suite 400 <br />
-                San Francisco, CA 94105, United States
+              <p className="text-gray-400 leading-relaxed whitespace-pre-line">
+                {settings?.address || '742 Evergreen Horizon Blvd, Suite 400\nSan Francisco, CA 94105, United States'}
               </p>
             </div>
 

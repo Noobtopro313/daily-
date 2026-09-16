@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, CheckCircle, Sparkles } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, CheckCircle, Sparkles, MapPin, MessageCircle } from 'lucide-react';
 import { CartItem } from '../types';
+import { GoogleMapsDeliveryModal } from './GoogleMapsDeliveryModal';
+import { auth, saveOrderToFirestore } from '../firebase';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -10,6 +12,12 @@ interface CartDrawerProps {
   onRemoveItem: (productId: string, selectedColor?: string) => void;
   onClearCart: () => void;
   onNavigateToShop: () => void;
+  onCheckoutSuccess?: (orderTotal: number, items: CartItem[]) => void;
+  storeSettings?: {
+    whatsappNumber: string;
+    whatsappChannelUrl: string;
+    whatsappCatalogUrl: string;
+  };
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -20,12 +28,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onClearCart,
   onNavigateToShop,
+  onCheckoutSuccess,
+  storeSettings,
 }) => {
   const [promoCode, setPromoCode] = useState('');
   const [discountApplied, setDiscountApplied] = useState(false);
   const [promoError, setPromoError] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
+  const [isMapsModalOpen, setIsMapsModalOpen] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('Main Boulevard, Gulberg III, Lahore');
+  const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number }>({ lat: 31.5204, lng: 74.3587 });
+  const [lastOrderId, setLastOrderId] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -52,6 +66,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const handleSimulateCheckout = () => {
     setIsCheckingOut(true);
+    if (onCheckoutSuccess) {
+      onCheckoutSuccess(finalTotal, [...cartItems]);
+    }
     setTimeout(() => {
       setIsCheckingOut(false);
       setOrderCompleted(true);
