@@ -53,9 +53,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
   // Store Settings Form State
   const [storeForm, setStoreForm] = useState<StoreSettings>(settings);
   const [savedSettingsSuccess, setSavedSettingsSuccess] = useState(false);
+  const [actionDoneMsg, setActionDoneMsg] = useState<string | null>(null);
 
   // New Product Form State
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [createProdError, setCreateProdError] = useState('');
   const [newProdName, setNewProdName] = useState('');
   const [newProdCategory, setNewProdCategory] = useState<Product['category']>('Audio');
   const [newProdPrice, setNewProdPrice] = useState('');
@@ -64,12 +66,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [newProdTagline, setNewProdTagline] = useState('');
   const [newProdDesc, setNewProdDesc] = useState('');
 
+  const triggerDoneMsg = (msg: string) => {
+    setActionDoneMsg(msg);
+    setTimeout(() => setActionDoneMsg(null), 4000);
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim() === 'admin' && password === 'admin123') {
       setIsAuthenticated(true);
       localStorage.setItem('nexora_admin_auth', 'true');
       setErrorMsg('');
+      triggerDoneMsg('Logged into Admin Dashboard successfully!');
     } else {
       setErrorMsg('Invalid credentials. Default: admin / admin123');
     }
@@ -83,10 +91,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProdName || !newProdPrice || !newProdImage) {
-      alert('Please fill Name, Price, and Image URL');
+      setCreateProdError('Please provide Product Title, Price, and Image URL.');
       return;
     }
 
+    setCreateProdError('');
     const price = parseFloat(newProdPrice);
     const originalPrice = newProdOriginalPrice ? parseFloat(newProdOriginalPrice) : undefined;
 
@@ -121,6 +130,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
     setNewProdImage('');
     setNewProdTagline('');
     setNewProdDesc('');
+    triggerDoneMsg(`Done! "${newProduct.name}" added to catalog.`);
   };
 
   // Login Screen

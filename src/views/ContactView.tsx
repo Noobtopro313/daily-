@@ -4,9 +4,10 @@ import { StoreSettings } from '../types';
 
 interface ContactViewProps {
   settings?: StoreSettings;
+  onMessageSent?: () => void;
 }
 
-export const ContactView: React.FC<ContactViewProps> = ({ settings }) => {
+export const ContactView: React.FC<ContactViewProps> = ({ settings, onMessageSent }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,6 +21,9 @@ export const ContactView: React.FC<ContactViewProps> = ({ settings }) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) return;
     setIsSubmitted(true);
+    if (onMessageSent) {
+      onMessageSent();
+    }
   };
 
   const faqs = [

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 
-export const Newsletter: React.FC = () => {
+interface NewsletterProps {
+  onSubscribed?: () => void;
+}
+
+export const Newsletter: React.FC<NewsletterProps> = ({ onSubscribed }) => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -17,6 +21,9 @@ export const Newsletter: React.FC = () => {
 
     setStatus('success');
     setErrorMessage('');
+    if (onSubscribed) {
+      onSubscribed();
+    }
   };
 
   return (
