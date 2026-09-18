@@ -28,6 +28,7 @@ export interface Product {
   rating: number;
   reviewCount: number;
   image: string;
+  video?: string;
   gallery: string[];
   badge?: 'Sale' | 'New' | 'Bestseller' | 'Popular';
   inStock: boolean;
